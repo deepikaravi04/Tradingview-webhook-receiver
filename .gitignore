@@ -1,7 +1,7 @@
 # Ignore files ending with .log
 *.db
-
-
+__pycache__
+posreq.py
 # Ignore a specific directory named 'temp'
 temp/
 
