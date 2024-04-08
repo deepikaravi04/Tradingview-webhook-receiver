@@ -3,7 +3,5 @@
 __pycache__
 posreq.py
 # Ignore a specific directory named 'temp'
-temp/
+venv/*
 
-# Ignore all files in a specific directory named 'temp'
-temp/*
