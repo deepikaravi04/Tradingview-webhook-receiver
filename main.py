@@ -3,11 +3,12 @@ from sqlalchemy import create_engine, Column, Integer, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
+from fastapi.responses import HTMLResponse
 
 app = FastAPI()
 
 # SQLite database setup
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
+SQLALCHEMY_DATABASE_URL = "sqlite:///./webhook.db"
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
@@ -22,6 +23,21 @@ class WebhookPayload(Base):
 
 # Create the tables in the database
 Base.metadata.create_all(bind=engine)
+
+@app.get("/", response_class=HTMLResponse)
+async def home():
+    return """
+    <html>
+    <head>
+        <title>Webhook Receiver</title>
+    </head>
+    <body>
+        <h1>Welcome to Webhook Receiver</h1>
+        <p>This is a simple FastAPI application to receive plain text webhooks.</p>
+        <p>To send a webhook, make a POST request to <code>/webhook</code>.</p>
+    </body>
+    </html>
+    """
 
 @app.post("/webhook")
 async def receive_webhook(payload: str):
