@@ -26,7 +26,13 @@ Base.metadata.create_all(bind=engine)
 
 @app.get("/", response_class=HTMLResponse)
 async def home():
-    return """
+    # Fetch all stored payloads from the database
+    db = SessionLocal()
+    payloads = db.query(WebhookPayload).all()
+    db.close()
+
+    # Render the HTML response with the stored payloads
+    html_content = """
     <html>
     <head>
         <title>Webhook Receiver</title>
@@ -35,9 +41,17 @@ async def home():
         <h1>Welcome to Webhook Receiver</h1>
         <p>This is a simple FastAPI application to receive plain text webhooks.</p>
         <p>To send a webhook, make a POST request to <code>/webhook</code>.</p>
+        <h2>Stored Payloads:</h2>
+        <ul>
+    """
+    for payload in payloads:
+        html_content += f"<li>{payload.payload} - Received at: {payload.received_at}</li>"
+    html_content += """
+        </ul>
     </body>
     </html>
     """
+    return HTMLResponse(content=html_content)
 
 @app.post("/webhook")
 async def receive_webhook(payload: str):
