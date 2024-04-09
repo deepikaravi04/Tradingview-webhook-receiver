@@ -1,53 +1,41 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from sqlalchemy import create_engine, Column, Integer, String, Float
+from sqlalchemy import create_engine, Column, Integer, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from datetime import datetime
 
 app = FastAPI()
 
-DATABASE_URL = "sqlite:///./test.db"
-
-# SQLAlchemy setup
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+# SQLite database setup
+SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# Database Model
-class Signal(Base):
-    __tablename__ = "signals"
-    id = Column(Integer, primary_key=True, index=True)
-    symbol = Column(String)
-    price = Column(Float)
-    volume = Column(Float)
+# Define a model for the received payloads
+class WebhookPayload(Base):
+    __tablename__ = "webhook_payloads"
 
-# Create tables
+    id = Column(Integer, primary_key=True, index=True)
+    payload = Column(String, index=True)
+    received_at = Column(DateTime, default=datetime.utcnow)
+
+# Create the tables in the database
 Base.metadata.create_all(bind=engine)
 
-class WebhookData(BaseModel):
-    symbol: str
-    price: float
-    volume: float
-
-@app.post('/webhook')
-async def webhook(data: WebhookData):
-    db = SessionLocal()
+@app.post("/webhook")
+async def receive_webhook(payload: str):
     try:
-        signal = Signal(symbol=data.symbol, price=data.price, volume=data.volume)
-        db.add(signal)
+        # Store the received payload in the database
+        db = SessionLocal()
+        db_payload = WebhookPayload(payload=payload)
+        db.add(db_payload)
         db.commit()
-        db.refresh(signal)
-    finally:
+        db.refresh(db_payload)
         db.close()
-    return {"message": "Webhook received successfully"}
 
-@app.get("/")
-async def read_root():
-    db = SessionLocal()
-    signals = db.query(Signal).all()
-    db.close()
-    return signals
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+        # Print the received payload
+        print("Received webhook payload:", payload)
+        return {"message": "Webhook received and stored successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

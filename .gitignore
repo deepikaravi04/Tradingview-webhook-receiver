@@ -4,4 +4,4 @@ __pycache__
 posreq.py
 # Ignore a specific directory named 'temp'
 venv/*
-
+tem.txt
