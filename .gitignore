@@ -5,3 +5,4 @@ posreq.py
 # Ignore a specific directory named 'temp'
 venv/*
 tem.txt
+tradingview_json.txt
