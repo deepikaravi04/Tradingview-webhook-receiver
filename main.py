@@ -73,6 +73,16 @@ def send_response(payload):
         else:
             print(f"Failed to send response to {forward_url}. Status code:", response.status_code)
 
+@app.get("/view_endpoint")
+async def get_all_endpoint_urls():
+    with sqlite3.connect(DATABASE_FILE) as connection:
+        cursor = connection.cursor()
+        # Retrieve all endpoint URLs from the database
+        cursor.execute("SELECT * FROM endpoint_urls")
+        rows = cursor.fetchall()
+    # Convert the rows to a list of dictionaries for JSON serialization
+    endpoint_urls = [{"id": row[0], "username": row[1], "desktop_url": row[2]} for row in rows]
+    return endpoint_urls
 
 @app.delete("/delete_endpoint")
 async def delete_all_endpoint_urls():
