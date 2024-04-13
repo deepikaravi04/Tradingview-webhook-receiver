@@ -72,3 +72,13 @@ def send_response(payload):
             print(f"Response sent successfully to {forward_url}")
         else:
             print(f"Failed to send response to {forward_url}. Status code:", response.status_code)
+
+
+@app.delete("/delete_endpoint")
+async def delete_all_endpoint_urls():
+    with sqlite3.connect(DATABASE_FILE) as connection:
+        cursor = connection.cursor()
+        # Delete all data from the endpoint_urls table
+        cursor.execute("DELETE FROM endpoint_urls")
+        connection.commit()
+    return {"message": "All endpoint URLs deleted successfully"}
